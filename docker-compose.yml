@@ -1,0 +1,86 @@
+version: '1.0'
+
+services:
+    influxdb:
+        image: kaphagel/influxdb:1.8
+        container_name: ${CONTAINER_PREFIX}_influxdb
+        ports:
+            - ${INFLUXDB_PORT}:${INFLUXDB_PORT}
+        volumes:
+            - /var/lib/promobas/influxdb:/var/lib/influxdb
+        restart: always
+        networks:
+            - backend
+            - frontend
+    modbusserver:
+        image: kaphagel/modbusserver:1.0
+        container_name: ${CONTAINER_PREFIX}_modbusserver
+        volumes:
+            - /var/lib/promobas/modbusserver:/etc/modbusserver
+        ports: 
+            - 502:502
+        restart: always
+        networks:
+            - frontend
+    modbuswriter:
+        image: kaphagel/modbuswriter:1.0
+        container_name: ${CONTAINER_PREFIX}_modbuswriter
+        volumes:
+            - /var/lib/promobas/modbuswriter:/etc/modbuswriter
+        restart: always
+        networks:
+            - frontend
+    ecsplayer:
+        image: kaphagel/ecsplayer:1.0
+        container_name: ${CONTAINER_PREFIX}_ecsplayer
+        volumes:
+            - /var/lib/promobas/ecsplayer:/etc/ecsplayer
+        restart: always
+        networks:
+            - backend
+            - frontend
+    telegraf:
+        image: kaphagel/telegraf:1.24
+        container_name: ${CONTAINER_PREFIX}_telegraf
+        links:
+            - influxdb
+        volumes:
+            - /var/lib/promobas/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+            - /var/lib/promobas/telegraf/telegraf.d:/etc/telegraf/telegraf.d:ro
+            - ./telegraf/ctrl:/etc/telegraf/ctrl:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /proc:/hostfs/proc
+        privileged: true
+        restart: always
+        networks: 
+            - backend
+    grafana:
+        image: kaphagel/grafana:9.5.14
+        container_name: ${CONTAINER_PREFIX}_grafana
+        ports: 
+            - ${GRAFANA_PORT}:${GRAFANA_PORT}
+        links:
+            - influxdb
+        volumes:
+            - /var/lib/promobas/grafana:/var/lib/grafana
+            - /var/lib/promobas/grafana/share:/usr/share/grafana/public/img
+            - /var/log/grafana       
+        restart: always
+        networks:
+            - frontend
+    rstudio:
+        image: kaphagel/rstudio:4.0
+        container_name: ${CONTAINER_PREFIX}_rstudio
+        ports: 
+            - 8787:8787
+            - 3838:3838
+        volumes:
+            - /var/lib/promobas/R/site-library:/usr/local/lib/R/ext-site-library
+        links:
+            - influxdb
+        restart: always
+        networks:
+            - frontend
+networks:
+    backend:
+    frontend:

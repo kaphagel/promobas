@@ -12,6 +12,16 @@ services:
         networks:
             - backend
             - frontend
+    modbusserver:
+        image: kaphagel/modbusserver:1.0
+        container_name: ${CONTAINER_PREFIX}_modbusserver
+        volumes:
+            - /var/lib/promobas/modbusserver:/etc/modbusserver
+        ports: 
+            - 502:502
+        restart: always
+        networks:
+            - frontend
 networks:
     backend:
     frontend:

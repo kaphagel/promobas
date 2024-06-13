@@ -22,14 +22,6 @@ services:
         restart: always
         networks:
             - frontend
-    modbuswriter:
-        image: kaphagel/modbuswriter:1.0
-        container_name: ${CONTAINER_PREFIX}_modbuswriter
-        volumes:
-            - /var/lib/promobas/modbuswriter:/etc/modbuswriter
-        restart: always
-        networks:
-            - frontend
     telegraf:
         image: kaphagel/telegraf:1.24
         container_name: ${CONTAINER_PREFIX}_telegraf
@@ -46,7 +38,7 @@ services:
         networks: 
             - backend
     grafana:
-        image: kaphagel/grafana:9.5.14
+        image: kaphagel/grafana:9.14
         container_name: ${CONTAINER_PREFIX}_grafana
         ports: 
             - ${GRAFANA_PORT}:${GRAFANA_PORT}
